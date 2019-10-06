@@ -180,7 +180,6 @@ export class Peasant extends Actor {
 }
 Peasant.usesTeam=true;
 
-
 //runs after nearest of differing team and attacks
 export class Huntsman extends Actor {
     constructor(worldMap, setX, setY, team) {
@@ -219,9 +218,6 @@ export class Huntsman extends Actor {
     }
 }
 Huntsman.usesTeam=true;
-
-
-
 
 export class Tree extends Actor {
     constructor(worldMap, setX, setY) {
