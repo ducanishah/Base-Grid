@@ -5,7 +5,7 @@ import { ActorHolder } from "./actors.js";
 import { MoveQueue } from "./moves.js";
 import { RoundLog } from "./helperScripts/logging.js"
 
-
+ 
 export class WorldMap{
     constructor(length){
         this.nextId=-1;
