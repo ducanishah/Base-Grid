@@ -3,9 +3,45 @@ import {actorPlace, updateWorldTable} from "./worldMap.js"
 import {MoveSet, Move,TestMove,ShiftOneSpace, Attack} from "./moves.js"
 import { displaySelectedActor } from "./helperScripts/inputsHandlers.js";
 import {breadthFirstPathfindingToFrom,getAllActorsPathableToFrom,getClosestActorOfFrom, getDistFromTo} from "./pathfinding.js"
-//constructor parameters: worldMap, x value, y value, display priority, name, symbol
-//modify displayString on inheritees(?) to change what is displayed in display window
+
+/**
+ * The basic entity of the world
+ * @see WorldMap
+ * @see Move
+ * @see MoveSet
+ * 
+ * @constructor
+ * NOTE: If the actor's attempted location cannot be placed onto (i.e. it doesn't exist) the actor will self-destruct.
+ * @param {WorldMap} worldMap The map the actor is to be placed on
+ * @param {number} xSet The x coordinate to be placed on
+ * @param {number} ySet The y coordinate to be placed on
+ * @param {number} dispPrior The priority for the symbol to display on the map; defaults to zero.
+ * @param {string} myName The name of the Actor, combined with id to form the actual name.
+ * @param {string} mySymbol the mapSymbol of the Actor
+ * 
+ * @property {number} _id The UNIQUE id number of the Actor. Comes from the worldMap, so may need to be changed if multiple WorldMaps exist.
+ * @property {string} name Name and id of the actor.
+ * @property {string} mapSymbol The letter(s) displayed on the map tile if this is the highest displayPriority actor on the tile.
+ * @property {string} displayString The string when the tile is selected: name and mapSymbol of the actor
+ * @property {number} displayPriority The priority of this actor when determining the symbol to display on the map.
+ * @property {WorldLocation} location The WorldLocation of the actor at present
+ * @property {boolean} alive The status as living or dead
+ * @property {WorldMap} mapParent The WorldMap that the actor is on
+ * @property {MoveSet} moveSet The MoveSet of the actor. Use MoveSet.add(Move) and MoveSet.queue("MoveName")
+ * 
+ * @method autoQueue The logic and queuing of a move for the actor goes here. this.moveSet.queue("MoveName")
+ * @method destroy Destroys the actor in a cleanup phase at the end of the round
+ */
 export class Actor {
+    /**
+     * NOTE: If the actor's attempted location cannot be placed onto (i.e. it doesn't exist) the actor will self-destruct.
+     * @param {WorldMap} worldMap The map the actor is to be placed on
+     * @param {number} xSet The x coordinate to be placed on
+     * @param {number} ySet The y coordinate to be placed on
+     * @param {number} dispPrior The priority for the symbol to display on the map; defaults to zero.
+     * @param {string} myName The name of the Actor, combined with id to form the actual name.
+     * @param {string} mySymbol the mapSymbol of the Actor 
+     */
     constructor(worldMap,xSet, ySet, dispPrior = 0, myName, mySymbol) {
         //in case of attempted spawn outside range
         if(!actorPlace(worldMap,this,xSet,ySet)){
@@ -27,10 +63,16 @@ export class Actor {
         this.markedForDestruction=false;
         
     }
-    //should be replaced in inheritees!
+    /**
+     * @method autoQueue The logic and queuing of a move for the actor goes here. this.moveSet.queue("MoveName")
+     * SHOULD BE REPLACED IN THE ACTUAL ACTORS
+     */
     autoQueue(){
         
     }
+    /**
+     * @method destroy Destroys the actor in a cleanup phase at the end of the round
+     */
     destroy(isCollectionPhase){
         if(isCollectionPhase){
             this.alive=false;
@@ -51,7 +93,20 @@ export class Actor {
         }
     } 
 }
-//autoQueue called here
+
+/**
+ * The holder of all actors on a WorldMap
+ * @see Actor
+ * @see WorldMap
+ * 
+ * @constructor
+ * 
+ * @property {Actor[]} aliveActors The list of all living actors (which should be all actors EXISTING) on the worldMap
+ * 
+ * @method autoQueueMoves Hits the autoQueue function of each Actor in the aliveActors list. Called by WorldMap
+ * @method markForDestruction(actor) Marks the given actor for destruction in cleanup. Called from the actor with actor.destroy();
+ * @method destroyActors Called after round, goes through list and destroys all the actors in the list, emptying list too.
+ */
 export class ActorHolder {
     constructor() {
         this.aliveActors = [];
@@ -124,6 +179,7 @@ export class Peasant extends Actor {
     }
 }
 Peasant.usesTeam=true;
+
 
 //runs after nearest of differing team and attacks
 export class Huntsman extends Actor {
