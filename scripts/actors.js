@@ -71,7 +71,8 @@ export class Actor {
         
     }
     /**
-     * @method destroy Destroys the actor in a cleanup phase at the end of the round
+     * @method destroy Marks the actor to be destroyed in a cleanup phase at the end of the round
+     * @param {boolean} isCollectionPhase Don't touch this. Used by the ActorHolder at round end.
      */
     destroy(isCollectionPhase){
         if(isCollectionPhase){

@@ -1,0 +1,35 @@
+This is THE guide for how I want to style my JSDoc commenting, to keep it all as consistent as possible.
+TOC:
+0. Some notes
+1. Classes
+2. Functions
+
+******
+NOTES:
+1. For @param {paramType}, use number, string, or your own custom type. 
+2. Most of the tags don't really do much for my purposes, but consistency aids understanding.
+
+********
+CLASSES:
+
+--- External documentation
+1. Summary: begin with the short description of the class, no tag necessary.
+2. @see: @see any other bit we should refer to to understand functionality
+3. @constructor: denotes the start of describing the constructor
+4. @param: denotes the parameters for the class's constructor, along with a brief explanation of what they do
+5. @property: various properties of the class that are important to know about. List in order
+6. @method: functions of the class, include any necessary parameters as @method functionName(functionParam)
+
+--- Internal documentation
+(Do note, much of this is just copying the documentation from outside to it's relevant areas.)
+1. constructor notes: For the constructor, mark down the parameters and other notes as you had outside the class.
+2. @method: Also document the methods internally, documenting parameters in more detail here if needed.
+
+*********
+FUNCTIONS:
+
+--- External documentation
+1. @function: Name of the function and description
+2. @see: Anything else we should reference to understand the function
+3. @param: explain the parameters of the function
+4. More explanation, as needed

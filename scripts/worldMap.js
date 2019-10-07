@@ -5,11 +5,10 @@ import { ActorHolder } from "./actors.js";
 import { MoveQueue } from "./moves.js";
 import { RoundLog } from "./helperScripts/logging.js"
 
-
 export class WorldMap{
     constructor(length){
         this.nextId=-1;
-        this.map=initializeWorldMap(this,length);
+        this.map=initializeWorldMapMap(this,length);
         this.actorHolder=new ActorHolder();
         this.moveQueue=new MoveQueue(this);
         this.roundLog=new RoundLog();
@@ -40,11 +39,35 @@ export class WorldMap{
     }
 }
 
-//x,y
-//has: presentActor,x,y,cameFrom,currentDisplayedActor
+/**
+ * The object for every location on a worldMap
+ * @see WorldMap
+ * @see Actor
+ * 
+ * @constructor
+ * This should only be initialized on creation of a Worldmap!!!
+ * @param {WorldMap} worldMap The WorldMap the location belongs to
+ * @param {number} setX The x coord of the location
+ * @param {number} setY The y coord of the location
+ * Note: The coordinates are base-zero and count from the top left
+ * 
+ * @property {Actor[]} presentActors The array of all actors present on the tile
+ * @property {WorldMap} mapParent The WorldMap that this is on
+ * @property {number} x The x coordinate of the location
+ * @property {number} y The y coordinate of the location
+ * Note: The coordinates are base-zero and count from the top left
+ * @property {WorldLocation} cameFrom The tile that was last pathed from; used specifically for pathfinding. 
+ * Here only to help you remember it; I recommend you don't touch it.
+ * @property {Actor} currentDisplayedActor The actor presently displayed on top of the tile; used for rendering.
+ */
 export class WorldLocation {
+    /**
+     * @param {WorldMap} worldMap The WorldMap the location belongs to
+     * @param {number} setX The x coord of the location
+     * @param {number} setY The y coord of the location
+     * Note: The coordinates are base-zero and count from the top left
+     */
     constructor(worldMap,setX, setY) {
-        
         this.presentActors = [];
         this.mapParent=worldMap;
         this.x = setX;
@@ -55,8 +78,19 @@ export class WorldLocation {
     
 }
 
-//initializes an empty worldMap with only the empty WorldLocations
-export function initializeWorldMap(parentWorldMap,length) {
+/**
+ * @function initializeWorldMapMap The function for initializing the .map property of a worldmap:
+ * An array of arrays containing WorldLocations
+ * @returns {Array[Array[WorldLocation]]} Returns an array of arrays of WorldLocations, for a map for a WorldMap
+ * 
+ * @see WorldMap
+ * @see WorldLocation
+ * 
+ * @param {WorldMap} parentWorldMap The WorldMap that the WorldLocations should list as parent
+ * @param {number} length The length (assumed square) of a side of the map to be generated
+ * NOTE: Coordinates are base-zero and count from the top left
+ */
+export function initializeWorldMapMap(parentWorldMap,length) {
     let worldMap=[]
     for (let i = 0; i < length; i++) {
         worldMap[i] = new Array(length);
@@ -67,7 +101,20 @@ export function initializeWorldMap(parentWorldMap,length) {
     return worldMap;
 }
 
-//updates worldTable AND redisplays selected cell
+/**
+ * @function updateWorldTable The function that updates the displayed table and redisplays the selected cell's contents.
+ * Slight misnomer, also updates cell displays
+ * @see createWorldTable The function that takes the WorldMap 
+ * @see displayCellContents The function that redisplays the cell contents
+ * @see selectedCell the x and y coords of the selected cell
+ * 
+ * @param {WorldMap} worldMap The WorldMap to be displayed.
+ * 
+ * What it does: clears the first child of the tableWrapper div (Should just be the table)
+ * Adds the table from the function createWorldTable
+ * Adds event listeners for single and double click
+ * Redisplays the cell contents if a selected cell exists 
+ */
 export function updateWorldTable(worldMap) {
     if (document.getElementById("tableWrapper").children[0]) {
         document.getElementById("tableWrapper").children[0].remove();
@@ -83,17 +130,22 @@ export function updateWorldTable(worldMap) {
     }
 }
 
-
+/**
+ * @function createWorldTable The function that creates the html table from the worldMap 
+ * @param {WorldMap} worldMap The worldMap to create the table based on 
+ */
 export function createWorldTable(worldMap) {
     let myTable = document.createElement("table");
     let myRows = new Array(worldMap.map.length);
     for (let i = 0; i < myRows.length; i++) {
-        myRows[i] = document.createElement("tr")
+        myRows[i] = document.createElement("tr");
     }
     //create the tds
     worldMap.map.forEach((subArray, subArrayIndex) => {
         subArray.forEach((item, itemIndex) => {
             let newtd = document.createElement("td");
+            //CODE CREATING THE TD
+
             if (item.presentActors.length) {
                 let topActor;
                 for (let i = 0; i < item.presentActors.length; i++) {
@@ -114,7 +166,7 @@ export function createWorldTable(worldMap) {
                 item.currentDisplayedActor=undefined;
             }
             
-            
+            //TD IS CREATED PUT IT IN
             myRows[itemIndex].append(newtd);
         });
     });
@@ -148,8 +200,6 @@ export function createWorldTable(worldMap) {
 
 //call this to move an actor from its present spot (or non-spot) to another spot
 
-
-
 export function actorPlace(worldMap, actor, x, y) {
     //test out of bounds
     if (x < 0 || x > worldMap.map.length - 1 || y < 0 || y > worldMap.map.length - 1) {
@@ -168,6 +218,7 @@ export function actorPlace(worldMap, actor, x, y) {
     actor.mapParent=worldMap;
     return true;
 }
+
 //take given cell and display info in the box AND if the cell contains the selected actor, highlights it
 export function displayCellContents(worldMap, cellX, cellY) {
     
@@ -215,6 +266,7 @@ export function testIsPassable(location){
     }
     return true;
 }
+
 //Accepts the location object, returns location objects
 export function getNeighborLocations(location) {
     let coordsToTest = [
