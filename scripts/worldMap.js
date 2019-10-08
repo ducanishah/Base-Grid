@@ -5,7 +5,39 @@ import { ActorHolder } from "./actors.js";
 import { MoveQueue } from "./moves.js";
 import { RoundLog } from "./helperScripts/logging.js"
 
+/**
+ * The largest object, holding the map, ActorHolder, MoveQueue, and RoundLog
+ * @see initializeWorldMapMap The function to create the map
+ * @see RoundLog the class used for logging everything
+ * @see MoveQueue the class used for holding and executing moves from actors
+ * @see ActorHolder the holder of all actors on the world
+ * @see Actor for understanding WHY any of this stuff is here
+ * @see updateWorldTable You want to display the map? Use this.
+ * 
+ * @constructor
+ * @param {number} length The length of a side of the map
+ * 
+ * @property {number} nextId The next id, to be given to the next actor created.
+ * @property {Array[Array[WorldLocation]]} map The actual map component.
+ * Base zero, counts from top left.
+ * @property {ActorHolder} actorHolder the ActorHolder of the WorldMap
+ * @property {MoveQueue} moveQueue the moveQueue of the worldMap
+ * @property {RoundLog} roundLog the RoundLog used to manage all logging behavior
+ * 
+ * 
+ * NOTE: runRound is the function you should be using
+ * @method autoQueueMoves loops over all actors in the actorHolders and calls their autoQueue function.
+ * @method executeMoveQueue loops over all moves in the queue and executes them
+ * NOTE: There is no priority system in place, all execution is assumed simultaneous despite being ordered, be very careful about moves that would invalidate other moves.
+ * @method runRound The function you SHOULD be using. Starts the new round, autoQueues, executes, cleans up destroyed actors, logs the round.
+ * @method logToRound(Obj) pushes the given object to the end of the current round's log
+ * @method getNextId Increments id then returns that value (used in Actor instantiation so each has a unique _id)
+ */
 export class WorldMap{
+    /**
+     * @param {number} length The length of one side of the map
+     * NOTE: Coords are zero-based and count from top left
+     */
     constructor(length){
         this.nextId=-1;
         this.map=initializeWorldMapMap(this,length);
@@ -13,15 +45,25 @@ export class WorldMap{
         this.moveQueue=new MoveQueue(this);
         this.roundLog=new RoundLog();
     }
+    /**
+     * @method autoQueueMoves Empties the moveQueue just in case
+     * calls autoQueueMoves on actorHolder
+     */
     autoQueueMoves(){
         //just passes on the commands lol
         this.moveQueue.emptyQueue()
         this.actorHolder.autoQueueMoves();
     }
+    /**
+     * @method executeMoveQueue calls execute on the moveQueue
+     */
     executeMoveQueue(){
         //same as above lol
         this.moveQueue.execute();
     }
+    /**
+     * @method runRound calls roundLog for a new round, queues moves, executes moves, cleans up actors slated for destruction, logs the round
+     */
     runRound(){
         this.roundLog.newRound();
         this.autoQueueMoves();
@@ -30,9 +72,16 @@ export class WorldMap{
         this.logToRound("Round ended")
         console.log(this.roundLog.currentRound);
     }
+    /**
+     * @method logToRound Logs a given object to the end of the present round's roundLog
+     * @param {Object} obj The object to be added, often a string.
+     */
     logToRound(obj){
         this.roundLog.logToCurrentRound(obj);
     }
+    /**
+     * @method getNextId Increments id, then returns the next id. Used for giving each actor a unique id
+     */
     getNextId(){
         this.nextId=this.nextId+1;
         return this.nextId;
@@ -132,7 +181,15 @@ export function updateWorldTable(worldMap) {
 
 /**
  * @function createWorldTable The function that creates the html table from the worldMap 
+ * Generates the table to be displayed from the map component of the WorldMap
+ * @returns {table} returns the html table generated
+ * 
+ * NOTE: Should only ever be called from here.
+ * @see updateWorldTable 
+ * 
  * @param {WorldMap} worldMap The worldMap to create the table based on 
+ * 
+ * @property {td} newtd The td element being created and modified.
  */
 export function createWorldTable(worldMap) {
     let myTable = document.createElement("table");
@@ -174,6 +231,7 @@ export function createWorldTable(worldMap) {
     return myTable;
 }
 
+//Defunct generateRandomCoordinates
 //accepts an array input with minx, maxx, miny, maxy
 //returns in form [x,y]
 // export function generateRandomCoordinates(arr) {
@@ -200,6 +258,19 @@ export function createWorldTable(worldMap) {
 
 //call this to move an actor from its present spot (or non-spot) to another spot
 
+/**
+ * @function actorPlace Places an actor in a given x y coordinate
+ * DOES NOT UPDATE THE WORLDTABLE
+ * @returns {boolean} Returns true if actor is successfully placed, false otherwise
+ * 
+ * @see WorldLocation for understanding the location interaction
+ * @see Actor for understanding the structure and interaction with the actor
+ * 
+ * @param {WorldMap} worldMap The worldMap to place the actor on
+ * @param {Actor} actor The actor to place
+ * @param {number} x x  coordinate to place out 
+ * @param {number} y y coordinate to place at
+ */
 export function actorPlace(worldMap, actor, x, y) {
     //test out of bounds
     if (x < 0 || x > worldMap.map.length - 1 || y < 0 || y > worldMap.map.length - 1) {
@@ -219,9 +290,18 @@ export function actorPlace(worldMap, actor, x, y) {
     return true;
 }
 
-//take given cell and display info in the box AND if the cell contains the selected actor, highlights it
+/**
+ * @function displayCellContents displays the contents of a given cell
+ * Takes class off of old cell (if any) and adds it to new cell
+ * @see updateWorldTable another function involving displays and updating
+ * @var {Array[number]} selectedCell The global var that holds the coords
+ * ALSO CALLS THIS FUNCTION
+ * @param {WorldMap} worldMap the WorldMap to look on for the map and cell 
+ * @param {number} cellX the cellX coord
+ * @param {number} cellY the cellY coord
+ * REMEMBER: coordinates are base-zero and count from top left
+ */
 export function displayCellContents(worldMap, cellX, cellY) {
-    
     //clear tint from last selected cell (if one exists)
     if (selectedCell.length) {
         let td = document.getElementById("tableWrapper").children[0].children[selectedCell[1]].children[selectedCell[0]];
@@ -255,7 +335,13 @@ export function displayCellContents(worldMap, cellX, cellY) {
     
 }
 
-//checks if a target location contains a non-passable actor (e.g. a wall)
+/**
+ * @function testIsPassable tests if a WorldLocation is passable
+ * @returns {boolean} true if no actor has isPassable set to false, false otherwise
+ * @see WorldLocation For understanding what is being accessed (presentActors)
+ * @see Actor Want to make something impassable? Give it isPassable=false
+ * @param {WorldLocation} location The WorldLocation to test at
+ */
 export function testIsPassable(location){
     
     let targetLocationActors=location.presentActors;
@@ -267,7 +353,13 @@ export function testIsPassable(location){
     return true;
 }
 
-//Accepts the location object, returns location objects
+/**
+ * @function getNeighborLocations Gets the neighboring locations of a location, used for pathfinding
+ * NOTE: Cardinal only
+ * @returns {Array[WorldLocation]} Array of neighboring WorldLocations
+ * @see WorldLocation for understanding the locations
+ * @param {WorldLocation} location The worldLocation to get the neighbors of
+ */
 export function getNeighborLocations(location) {
     let coordsToTest = [
         [location.x + 1, location.y],

@@ -7,6 +7,7 @@ import {breadthFirstPathfindingToFrom,getAllActorsPathableToFrom,getClosestActor
 /**
  * The basic entity of the world
  * @see WorldMap
+ * @see actorPlace the function used to move actors
  * @see Move
  * @see MoveSet
  * 
